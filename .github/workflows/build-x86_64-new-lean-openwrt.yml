@@ -147,12 +147,23 @@ jobs:
           make checksum
           echo "::set-output name=status::success"
 
+      - name: Build Docker Image
+        run: |
+          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
+          docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          
+      - name : Upload packages
+        uses: actions/upload-artifact@master
+        if: always()
+        with:
+          name: packages
+          path: openwrt/bin/targets/$TARGET/$SUBTARGET/
+        
       - name: Build & Push Docker Image To Aliyun Docker Registry
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64
           docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
-          docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          docker tag ${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
 
 #      - name: Push Docker Image To Dockerhub
