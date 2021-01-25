@@ -174,14 +174,3 @@ jobs:
 #        run: |
 #          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
 #          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64
-
-      - name: Organize Files
-        id: organize
-        if: steps.generate.outputs.status == 'success' && !cancelled()
-        run: |
-          cd $OPENWRTROOT/bin/targets/$TARGET/$SUBTARGET
-          tree -L 1
-          cd $OPENWRTROOT/bin/targets/$TARGET/
-          curl -fsSL git.io/file-transfer | sh
-          df -hT $PWD
-          echo "::set-output name=status::success"
