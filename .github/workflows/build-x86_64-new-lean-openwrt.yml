@@ -142,12 +142,15 @@ jobs:
           cp $DEVICE-generic-rootfs.tar.gz /opt/
           mv -f /opt/$DEVICE-generic-rootfs.tar.gz /opt/images/package.tar.gz
           
-      - name: Organize Files
+      - name: Organize Files and Build Docker Image
         id: organized
         if: steps.generate.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
           cp $DEVICE-generic-rootfs.tar.gz /opt/
+          docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
+          docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           mv -f /opt/$DEVICE-generic-rootfs.tar.gz /opt/images/package.tar.gz
           echo "::set-output name=status::success"
 
@@ -157,12 +160,7 @@ jobs:
         with:
          name: Openwrt-framework
          path: /opt/images
-          
-      - name: Build Docker Image
-        run: |
-          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64
-        
+                
       - name: Push Docker Image To Aliyun Shanghai Docker Registry
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
