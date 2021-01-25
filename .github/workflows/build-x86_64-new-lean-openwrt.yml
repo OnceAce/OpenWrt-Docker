@@ -138,9 +138,6 @@ jobs:
           make target/install -j$(nproc) || make target/install -j1 V=s
           make checksum
           echo "::set-output name=status::success"
-          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          cp $DEVICE-generic-rootfs.tar.gz /opt/
-          mv -f /opt/$DEVICE-generic-rootfs.tar.gz /opt/images/package.tar.gz
           
       - name: Organize Files and Build Docker Image
         id: organized
