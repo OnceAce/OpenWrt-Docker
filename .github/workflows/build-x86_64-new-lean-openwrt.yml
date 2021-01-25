@@ -27,6 +27,7 @@ env:
   KMODS_IN_FIRMWARE: false
   UPLOAD_WETRANSFER: true
   UPLOAD_COWTRANSFER: true
+  UPLOAD_Packages: true
   TZ: Asia/Shanghai
 
 jobs:
@@ -137,7 +138,26 @@ jobs:
           make target/install -j$(nproc) || make target/install -j1 V=s
           make checksum
           echo "::set-output name=status::success"
+          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
+          cp $DEVICE-generic-rootfs.tar.gz /opt/
+          mv -f /opt/$DEVICE-generic-rootfs.tar.gz /opt/images/package.tar.gz
+          
+      - name: Organize Files
+        id: organized
+        if: steps.generate.outputs.status == 'success' && !cancelled()
+        run: |
+          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
+          cp $DEVICE-generic-rootfs.tar.gz /opt/
+          mv -f /opt/$DEVICE-generic-rootfs.tar.gz /opt/images/package.tar.gz
+          echo "::set-output name=status::success"
 
+      - name : Upload packages
+        uses: actions/upload-artifact@master
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_Packages == 'true' && !cancelled()
+        with:
+         name: Openwrt-framework
+         path: /opt/images
+          
       - name: Build Docker Image
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
