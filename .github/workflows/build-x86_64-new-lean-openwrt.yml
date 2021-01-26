@@ -145,7 +145,7 @@ jobs:
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
           docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64
-          cp $DEVICE-generic-rootfs.tar.gz /ecc/images/firmware.tar.gz
+          cp ./$DEVICE-generic-rootfs.tar.gz /ecc/images/firmware.tar.gz
           echo "::set-output name=status::success"
 
       - name : Upload packages
