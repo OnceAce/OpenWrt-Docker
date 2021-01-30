@@ -25,8 +25,8 @@ env:
   DIY_SH: scripts/lean-openwrt.sh
 #  IPV6MOD_IN_FIRMWARE: true
   KMODS_IN_FIRMWARE: false
-  UPLOAD_WETRANSFER: true
-  UPLOAD_COWTRANSFER: true
+  UPLOAD_WETRANSFER: false
+  UPLOAD_COWTRANSFER: false
   UPLOAD_Packages: true
   TZ: Asia/Shanghai
 
@@ -173,3 +173,17 @@ jobs:
 #        run: |
 #          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
 #          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64
+
+
+      - name: Upload RootFS To CowTransfer
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+        run: |
+          cd $OPENWRTROOT/bin/targets/$TARGET/
+          ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+          echo "::warning file=Firmware-Cowtransfer.com::$(cat cowtransfer.log | grep https)"
+      - name: Upload RootFS To WeTransfer
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
+        run: |
+          cd $OPENWRTROOT/bin/targets/$TARGET/
+          ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+          echo "::warning file=Firmware-Wetransfer.com::$(cat wetransfer.log | grep https)"
