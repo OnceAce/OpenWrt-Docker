@@ -145,7 +145,7 @@ jobs:
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
           docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64
-          mkdir -p /upload/images/ && cp ./$DEVICE-generic-rootfs.tar.gz /upload/images/firmware.tar.gz
+          sudo mkdir -p /opt/images/ && cp ./$DEVICE-generic-rootfs.tar.gz /opt/images/firmware.tar.gz
           echo "::set-output name=status::success"
 
       - name : Upload packages
@@ -153,7 +153,7 @@ jobs:
         if: steps.organized.outputs.status == 'success' && env.UPLOAD_Packages == 'true' && !cancelled()
         with:
          name: Openwrt-firmware
-         path: /upload/images
+         path: /opt/images/
                 
       - name: Push Docker Image To Aliyun Shanghai Docker Registry
         run: |
