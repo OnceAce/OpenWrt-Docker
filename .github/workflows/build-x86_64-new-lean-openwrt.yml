@@ -13,7 +13,7 @@ on:
     types: [x86_64, x86]
   workflow_dispatch:
   schedule:
-    - cron: 0 18 * * *
+    - cron: 0 16 * * *
 #  watch:
 #    types: started
 
@@ -31,6 +31,7 @@ env:
   TZ: Asia/Shanghai
 
 jobs:
+  timeout-minutes: 500
   build:
     runs-on: ubuntu-18.04
     if: github.event.repository.owner.id == github.event.sender.id
