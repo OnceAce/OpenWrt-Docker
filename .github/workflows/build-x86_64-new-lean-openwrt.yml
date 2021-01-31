@@ -148,7 +148,7 @@ jobs:
         if: steps.generate.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker import $DEVICE-generic-rootfs.tar.gz ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64
+          docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64
           sudo mkdir -p /opt/images/ && cp ./$DEVICE-generic-rootfs.tar.gz /opt/images/firmware.tar.gz
           echo "::set-output name=status::success"
 
@@ -159,27 +159,31 @@ jobs:
          name: Openwrt-firmware
          path: /opt/images/
                 
-      - name: Push Docker Image To Aliyun Docker Registry
-        if: steps.generate.outputs.status == 'success' && !cancelled()
+      - name: Push Docker Image To Aliyun Shanghai Registry
+        if: steps.organized.outputs.status == 'success' && UPLOAD_Ali_SH == 'true' && !cancelled()
+        continue-on-error: true
+        timeout-minutes: 60
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          if "$UPLOAD_HUB_DOCKER" = 'true'
-          then
-            docker login -u ${{ DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
-            docker push ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64
-          fi  
-          if "$UPLOAD_Ali_SH" = 'true'
-          then
-            docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
-            docker tag ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-            docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-          fi
-          if "$UPLOAD_Ali_SZ" = 'true'
-          then
-            docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shenzhen.aliyuncs.com
-            docker tag ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-            docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-          fi
+          docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          
+      - name: Push Docker Image To Aliyun Shenzhen Registry
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_Ali_SZ == 'true' && !cancelled()
+        continue-on-error: true
+        timeout-minutes: 60
+        run: |
+          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
+          docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shenzhen.aliyuncs.com
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          
+      - name: Push Docker Image To Dockerhub
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_HUB_DOCKER == 'true' && !cancelled()
+        run: |
+          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64
           
       - name: Upload RootFS To CowTransfer
         if: steps.organized.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
