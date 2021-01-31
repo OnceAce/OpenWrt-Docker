@@ -28,6 +28,7 @@ env:
   UPLOAD_WETRANSFER: false
   UPLOAD_COWTRANSFER: false
   UPLOAD_Packages: false
+  UPLOAD_HUB_DOCKER: true
   UPLOAD_Ali_SH: true
   UPLOAD_Ali_SZ: true
   TZ: Asia/Shanghai
@@ -147,7 +148,7 @@ jobs:
         if: steps.generate.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker import $DEVICE-generic-rootfs.tar.gz ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64
+          docker import $DEVICE-generic-rootfs.tar.gz ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64
           sudo mkdir -p /opt/images/ && cp ./$DEVICE-generic-rootfs.tar.gz /opt/images/firmware.tar.gz
           echo "::set-output name=status::success"
 
@@ -162,16 +163,21 @@ jobs:
         if: steps.generate.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
+          if "$UPLOAD_HUB_DOCKER" = 'true'
+          then
+            docker login -u ${{ DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
+            docker push ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64
+          fi  
           if "$UPLOAD_Ali_SH" = 'true'
           then
             docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
-            docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+            docker tag ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
             docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           fi
           if "$UPLOAD_Ali_SZ" = 'true'
           then
             docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shenzhen.aliyuncs.com
-            docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+            docker tag ${{ DOCKER_HUB_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
             docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           fi
           
