@@ -27,7 +27,9 @@ env:
   KMODS_IN_FIRMWARE: false
   UPLOAD_WETRANSFER: false
   UPLOAD_COWTRANSFER: false
-  UPLOAD_Packages: true
+  UPLOAD_Packages: false
+  UPLOAD_Ali_SH: true
+  UPLOAD_Ali_SZ: true
   TZ: Asia/Shanghai
 
 jobs:
@@ -156,19 +158,23 @@ jobs:
          name: Openwrt-firmware
          path: /opt/images/
                 
-      - name: Push Docker Image To Aliyun Shanghai Docker Registry
+      - name: Push Docker Image To Aliyun Docker Registry
+        if: steps.generate.outputs.status == 'success' && !cancelled()
         run: |
           cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
-          docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-          docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          if "$UPLOAD_Ali_SH" = 'true'
+          then
+            docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shanghai.aliyuncs.com
+            docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+            docker push registry.cn-shanghai.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          fi
+          if "$UPLOAD_Ali_SZ" = 'true'
+          then
+            docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shenzhen.aliyuncs.com
+            docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+            docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
+          fi
           
-      - name: Push Docker Image To Aliyun Shenzhen Docker Registry
-        run: |
-          cd openwrt/bin/targets/$TARGET/$SUBTARGET/
-          docker login -u ${{ secrets.ALIYUN_USERNAME }} -p ${{ secrets.ALIYUN_PWD }} registry.cn-shenzhen.aliyuncs.com
-          docker tag ${{ secrets.ALIYUN_USERNAME }}/openwrt:x86_64 registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
-          docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           
 #      - name: Push Docker Image To Dockerhub
 #        run: |
