@@ -5,7 +5,7 @@
 [![Docker Stars](https://img.shields.io/docker/stars/sulinggg/openwrt.svg?style=flat-square&label=Stars&logo=docker)](https://hub.docker.com/r/sulinggg/openwrt)
 [![Docker Pulls](https://img.shields.io/docker/pulls/sulinggg/openwrt.svg?style=flat-square&label=Pulls&logo=docker&color=orange)](https://hub.docker.com/r/sulinggg/openwrt)
 
-本项目旨在构建适用于x86_64 平台的 OpenWrt 镜像 (随缘更新)。
+本项目旨在构建适用于x86_64 平台的 OpenWrt 镜像 (佛系更新)。
 
 Github: <https://github.com/SuLingGG/OpenWrt-Rpi-Docker>
 
