@@ -160,7 +160,7 @@ jobs:
          path: /opt/images/
                 
       - name: Push Docker Image To Aliyun Shanghai Registry
-        if: steps.organized.outputs.status == 'success' && UPLOAD_Ali_SH == 'true' && !cancelled()
+        if: steps.organized.outputs.status == 'success' && env.UPLOAD_Ali_SH == 'true' && !cancelled()
         continue-on-error: true
         timeout-minutes: 60
         run: |
