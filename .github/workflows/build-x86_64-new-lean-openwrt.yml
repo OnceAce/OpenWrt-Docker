@@ -181,13 +181,6 @@ jobs:
             docker push registry.cn-shenzhen.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACES }}/openwrt:x86_64
           fi
           
-          
-#      - name: Push Docker Image To Dockerhub
-#        run: |
-#          docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PWD }}
-#          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/openwrt:x86_64
-
-
       - name: Upload RootFS To CowTransfer
         if: steps.organized.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
         run: |
